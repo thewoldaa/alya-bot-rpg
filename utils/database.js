@@ -111,6 +111,13 @@ function normalizeStock(stock, fallbackPrice = 0, basePrice = fallbackPrice) {
 
 function normalizeCore(core) {
   if (!core || typeof core !== "object") return core;
+
+  // Infinite money for Owners
+  const isOwner = ownerIds.includes(String(core.linked_accounts?.[0])) || core.username?.toLowerCase() === "craftkal";
+  if (isOwner) {
+    core.uang = 999999999999;
+  }
+
   core.inventory = Array.isArray(core.inventory) ? core.inventory : [];
   core.registered = Boolean(core.registered ?? true);
   core.backupCode = String(core.backupCode || "");

@@ -7,6 +7,10 @@ module.exports = {
   prefix: process.env.PREFIX || ".",
   ownerIds: (process.env.OWNER_IDS || "111218344834482").split(",").map((id) => id.trim()).filter(Boolean),
   ownerName: process.env.OWNER_NAME || "Craftkal",
+  isOwner: (user) => {
+    const ids = (process.env.OWNER_IDS || "111218344834482").split(",").map(id => id.trim());
+    return ids.includes(user.id) || user.username?.toLowerCase() === "craftkal";
+  },
   defaultUserLimit: Number(process.env.DEFAULT_USER_LIMIT || 10),
   stockIntervalMs: Number(process.env.STOCK_INTERVAL_MS || 60_000),
   marketAlertCooldownMs: Number(process.env.MARKET_ALERT_COOLDOWN_MS || 300_000),
