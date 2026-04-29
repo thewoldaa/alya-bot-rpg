@@ -146,9 +146,59 @@ async function bootstrap() {
       return res.send({ type: 1 });
     }
 
-    // Forward other interactions to client if needed, 
-    // but gateway is already handling them.
-    res.status(200).send({ type: 4, data: { content: "Interaction received but handled via Gateway." } });
+    if (body.type === 2) {
+      const { name } = body.data;
+      const command = client.slashCommands.get(name);
+      
+      if (command) {
+        // Create a mock interaction object for the command handler
+        // Note: This is a simplified version. For complex commands, 
+        // they might need a more complete interaction object.
+        const interaction = {
+          commandName: name,
+          user: body.member?.user || body.user,
+          member: body.member,
+          guildId: body.guild_id,
+          options: {
+            get: (optName) => {
+              const opt = body.data.options?.find(o => o.name === optName);
+              return opt ? { value: opt.value } : null;
+            },
+            getString: (n) => body.data.options?.find(o => o.name === n)?.value,
+            getInteger: (n) => body.data.options?.find(o => o.name === n)?.value,
+            getUser: (n) => {
+              const id = body.data.options?.find(o => o.name === n)?.value;
+              return body.data.resolved?.users?.[id];
+            }
+          },
+          reply: async (payload) => {
+            const content = typeof payload === "string" ? payload : payload.content;
+            const embeds = payload.embeds || [];
+            return res.status(200).send({
+              type: 4,
+              data: { content, embeds }
+            });
+          },
+          followUp: async (payload) => {
+            // Note: followUp is hard over HTTP without a token-based reply
+            console.log("FollowUp requested in serverless mode");
+          }
+        };
+
+        try {
+          await command.executeSlash({ client, interaction, db: client.db });
+          return;
+        } catch (err) {
+          console.error("Slash Command Error:", err);
+          return res.status(200).send({
+            type: 4,
+            data: { content: "Terjadi kesalahan saat menjalankan slash command." }
+          });
+        }
+      }
+    }
+
+    res.status(200).send({ type: 4, data: { content: "Interaction received but no handler found." } });
   });
 
   app.get("/", (req, res) => {
