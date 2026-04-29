@@ -122,7 +122,7 @@ async function bootstrap() {
   loadEvents(client);
 
   // Endpoint for Discord Interactions (Slash Commands)
-  app.post("/interactions", (req, res) => {
+  app.post("/interactions", async (req, res) => {
     const signature = req.get("X-Signature-Ed25519");
     const timestamp = req.get("X-Signature-Timestamp");
     const publicKey = process.env.PUBLIC_KEY;
