@@ -23,6 +23,8 @@ module.exports = {
   async execute(client, message) {
     if (!message || !message.author || message.author.bot) return;
 
+    console.log(`[Message] From: ${message.author.tag} | Content: "${message.content}"`);
+
     const profile = client.db.getCoreByDiscordId(message.author.id);
 
     if (profile) {
