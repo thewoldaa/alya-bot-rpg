@@ -1,3 +1,4 @@
+// Railway Deployment - Version 2.0 (Clean Version)
 const fs = require("fs");
 const path = require("path");
 const { Client, Collection, GatewayIntentBits, Partials } = require("discord.js");
