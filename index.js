@@ -15,6 +15,10 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 async function ensureEnvFile() {
+  // Skip interactive prompt for Vercel/Production
+  if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+    return;
+  }
   const envPath = path.join(__dirname, ".env");
   let existing = "";
 
@@ -27,19 +31,7 @@ async function ensureEnvFile() {
     return;
   }
 
-  const rl = readline.createInterface({ input: stdin, output: stdout });
-  const token = (await rl.question("Masukkan TOKEN BOT: ")).trim();
-  rl.close();
-
-  if (!token) {
-    throw new Error("TOKEN BOT tidak boleh kosong.");
-  }
-
-  const content = existing.trim()
-    ? `${existing.trimEnd()}\nTOKEN=${token}\n`
-    : `TOKEN=${token}\n`;
-
-  fs.writeFileSync(envPath, content, "utf8");
+  console.warn("TOKEN tidak ditemukan di .env. Pastikan kamu mengatur Environment Variable TOKEN.");
 }
 
 async function promptForToken(message) {
@@ -140,6 +132,9 @@ async function bootstrap() {
   const token = process.env.TOKEN || process.env.DISCORD_TOKEN;
   let currentToken = token;
   if (!currentToken) {
+    if (process.env.VERCEL) {
+      throw new Error("TOKEN BOT tidak ditemukan di Environment Variables Vercel.");
+    }
     currentToken = await promptForToken("Masukkan TOKEN BOT: ");
     writeTokenToEnv(currentToken);
   }
