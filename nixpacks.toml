@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["...", "vips"]
+
+[phases.build]
+cmds = ["npm install"]
+
+[start]
+cmd = "node index.js"
