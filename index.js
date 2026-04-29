@@ -10,6 +10,9 @@ const Database = require("./utils/database");
 const { loadCommands } = require("./handler/loadCommands");
 const { loadEvents } = require("./handler/loadEvents");
 const { setRuntime } = require("./utils/state");
+const express = require("express");
+const app = express();
+const port = process.env.PORT || 3000;
 
 async function ensureEnvFile() {
   const envPath = path.join(__dirname, ".env");
@@ -117,6 +120,14 @@ async function bootstrap() {
   setRuntime(client.runtime);
   loadCommands(client);
   loadEvents(client);
+
+  app.get("/", (req, res) => {
+    res.send("Alya RPG Bot is online!");
+  });
+
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
 
   process.on("unhandledRejection", (error) => {
     console.error("[unhandledRejection]", error);
