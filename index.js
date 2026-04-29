@@ -3,6 +3,7 @@ const path = require("path");
 const readline = require("readline/promises");
 const { stdin, stdout } = require("process");
 const dotenv = require("dotenv");
+const nacl = require("tweetnacl");
 const { Client, Collection, GatewayIntentBits, Partials } = require("discord.js");
 
 const config = require("./config");
@@ -13,6 +14,13 @@ const { setRuntime } = require("./utils/state");
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Middleware to capture raw body for Discord signature verification
+app.use(express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 
 async function ensureEnvFile() {
   // Skip interactive prompt for Vercel/Production
@@ -112,6 +120,36 @@ async function bootstrap() {
   setRuntime(client.runtime);
   loadCommands(client);
   loadEvents(client);
+
+  // Endpoint for Discord Interactions (Slash Commands)
+  app.post("/interactions", (req, res) => {
+    const signature = req.get("X-Signature-Ed25519");
+    const timestamp = req.get("X-Signature-Timestamp");
+    const publicKey = process.env.PUBLIC_KEY;
+
+    if (!signature || !timestamp || !publicKey) {
+      return res.status(401).end("Missing signature headers or public key");
+    }
+
+    const isVerified = nacl.sign.detached.verify(
+      Buffer.concat([Buffer.from(timestamp), req.rawBody]),
+      Buffer.from(signature, "hex"),
+      Buffer.from(publicKey, "hex")
+    );
+
+    if (!isVerified) {
+      return res.status(401).end("Invalid request signature");
+    }
+    
+    const body = req.body;
+    if (body.type === 1) {
+      return res.send({ type: 1 });
+    }
+
+    // Forward other interactions to client if needed, 
+    // but gateway is already handling them.
+    res.status(200).send({ type: 4, data: { content: "Interaction received but handled via Gateway." } });
+  });
 
   app.get("/", (req, res) => {
     res.send("Alya RPG Bot is online!");
