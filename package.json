@@ -1,0 +1,16 @@
+{
+  "name": "mahiru-bot-dc",
+  "version": "1.0.0",
+  "description": "Discord RPG, economy, social, and server control bot built with discord.js v14.",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.21.0",
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1",
+    "sharp": "^0.34.5"
+  }
+}
