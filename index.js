@@ -73,11 +73,16 @@ async function bootstrap() {
   });
 
   // Login
-  const token = process.env.TOKEN || process.env.DISCORD_TOKEN;
+  let token = process.env.TOKEN || process.env.DISCORD_TOKEN;
   if (!token) {
     console.error("ERROR: TOKEN tidak ditemukan di Environment Variables!");
     process.exit(1);
   }
+
+  // Bersihkan token dari spasi atau karakter aneh
+  token = token.trim().replace(/['"]/g, ""); 
+  
+  console.log(`Menghubungkan ke Discord... (Token Length: ${token.length})`);
 
   try {
     await client.login(token);
