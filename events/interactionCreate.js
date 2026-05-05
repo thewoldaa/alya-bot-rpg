@@ -15,7 +15,7 @@ module.exports = {
 
     try {
       // Command yang boleh di mana saja
-      const freeSlashCommands = new Set(["afkalya", "kickalya"]);
+      const freeSlashCommands = new Set(["afkalya", "kickalya", "sb"]);
       if (!freeSlashCommands.has(interaction.commandName) && interaction.guild) {
         const guildSettings = client.db.getGuildSettings(interaction.guild.id);
         if (guildSettings.chat_channel_id && interaction.channel.id !== guildSettings.chat_channel_id) {

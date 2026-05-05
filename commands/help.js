@@ -43,7 +43,7 @@ module.exports = {
         "`.boss info` — Lihat status World Boss",
         "`.boss serang` — Serang World Boss"
       ],
-      "🎙️ Voice & Soundboard": [
+      "🎙️ Soundboard": [
         "`.afkalya` — Alya masuk ke voice kamu (stay)",
         "`.kickalya` — Mengeluarkan Alya dari voice",
         "`.addsb <nama>` — Tambah soundboard (upload mp3)",

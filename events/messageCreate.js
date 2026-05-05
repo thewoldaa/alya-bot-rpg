@@ -90,7 +90,7 @@ module.exports = {
       if (!command) return;
 
       // Command yang boleh di mana saja
-      const freeCommands = new Set(["afkalya", "kickalya"]);
+      const freeCommands = new Set(["afkalya", "kickalya", "addsb", "listsb", "sbdel"]);
       if (!freeCommands.has(command.name) && message.guild) {
         const guildSettings = client.db.getGuildSettings(message.guild.id);
         if (guildSettings.chat_channel_id && message.channel.id !== guildSettings.chat_channel_id) {
