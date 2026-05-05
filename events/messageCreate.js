@@ -133,6 +133,14 @@ module.exports = {
 
     const isAlyaMentioned = message.mentions.users.has(client.user.id) || message.content.toLowerCase().includes("alya");
     if (isAlyaMentioned || message.channel.type === ChannelType.DM) {
+      // Cooldown AI untuk irit RPM (3 detik per user)
+      const aiCooldowns = client.aiCooldowns || new Map();
+      if (!client.aiCooldowns) client.aiCooldowns = aiCooldowns;
+
+      const lastUsed = aiCooldowns.get(message.author.id) || 0;
+      if (Date.now() - lastUsed < 3000) return; // Diamkan jika kurang dari 3 detik
+      aiCooldowns.set(message.author.id, Date.now());
+
       // Send typing indicator while waiting for AI
       await message.channel.sendTyping();
       const response = await getAlyaResponse(message.author.id, message.content, message.author.username, client.db);

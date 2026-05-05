@@ -31,7 +31,7 @@ const tools = [
 ];
 
 // List models to try in order of preference
-const MODELS = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro"];
+const MODELS = ["gemini-2.0-flash-exp", "gemini-1.5-flash", "gemini-1.5-flash-latest"];
 let currentModelIndex = 0;
 
 function getModel(withTools = true) {
