@@ -2,18 +2,36 @@ const { SlashCommandBuilder } = require("discord.js");
 const { joinVoiceChannel, VoiceConnectionStatus, entersState, getVoiceConnection } = require("@discordjs/voice");
 const { successEmbed, errorEmbed } = require("../utils/embeds");
 
-function setupConnection(connection) {
+function setupConnection(connection, channelId, guildId, adapterCreator) {
   connection.on(VoiceConnectionStatus.Disconnected, async () => {
     try {
+      console.log(`[Voice] Alya terputus dari ${guildId}, mencoba menyambung kembali...`);
       await Promise.race([
-        entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
-        entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
+        entersState(connection, VoiceConnectionStatus.Signalling, 10_000),
+        entersState(connection, VoiceConnectionStatus.Connecting, 10_000),
       ]);
+      // Berhasil menyambung kembali
     } catch (error) {
-      if (connection.state.status !== VoiceConnectionStatus.Destroyed) {
-        connection.destroy();
+      console.log(`[Voice] Gagal reconnect otomatis, mencoba join ulang manual...`);
+      // Jika benar-benar putus, coba join ulang manual
+      try {
+        const newConnection = joinVoiceChannel({
+          channelId: channelId,
+          guildId: guildId,
+          adapterCreator: adapterCreator,
+          selfDeaf: false,
+          selfMute: false
+        });
+        setupConnection(newConnection, channelId, guildId, adapterCreator);
+      } catch (e) {
+        console.error("[Voice] Gagal total untuk join ulang:", e);
       }
     }
+  });
+
+  // Log status untuk debugging
+  connection.on("stateChange", (oldState, newState) => {
+    console.log(`[Voice] State changed from ${oldState.status} to ${newState.status}`);
   });
 }
 
@@ -22,7 +40,7 @@ module.exports = {
   aliases: ["afk alya", "joinvoice"],
   data: new SlashCommandBuilder()
     .setName("afkalya")
-    .setDescription("Menyuruh Alya untuk join Voice Channel kamu dan stay (AFK)."),
+    .setDescription("Menyuruh Alya untuk join Voice Channel kamu dan stay (AFK) selamanya."),
   async execute({ message }) {
     const channel = message.member?.voice?.channel;
     if (!channel) {
@@ -38,8 +56,8 @@ module.exports = {
         selfMute: false
       });
       
-      setupConnection(connection);
-      return message.reply({ embeds: [successEmbed("Alya Join", "Aku udah masuk ke Voice Channel kamu ya! Bakal diam di sini sampai kamu suruh `.kickalya`")] });
+      setupConnection(connection, channel.id, message.guild.id, message.guild.voiceAdapterCreator);
+      return message.reply({ embeds: [successEmbed("Alya Join (Permanent)", "Aku udah masuk ke Voice Channel kamu ya! Aku bakal stay di sini selamanya sampai kamu usir pakai `.kickalya`.")] });
     } catch (error) {
       console.error("AFK Voice Error:", error);
       return message.reply({ embeds: [errorEmbed("Error", "Gagal join Voice Channel: " + error.message)] });
@@ -60,8 +78,8 @@ module.exports = {
         selfMute: false
       });
       
-      setupConnection(connection);
-      return interaction.reply({ embeds: [successEmbed("Alya Join", "Aku udah masuk ke Voice Channel kamu ya! Bakal diam di sini sampai kamu suruh `/kickalya`")] });
+      setupConnection(connection, channel.id, interaction.guildId, interaction.guild.voiceAdapterCreator);
+      return interaction.reply({ embeds: [successEmbed("Alya Join (Permanent)", "Aku udah masuk ke Voice Channel kamu ya! Aku bakal stay di sini selamanya sampai kamu usir pakai `/kickalya`.")] });
     } catch (error) {
       console.error("AFK Voice Slash Error:", error);
       return interaction.reply({ embeds: [errorEmbed("Error", "Gagal join Voice Channel: " + error.message)], ephemeral: true });
