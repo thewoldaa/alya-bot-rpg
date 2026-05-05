@@ -4,7 +4,14 @@ let genAI = null;
 let model = null;
 
 // List models to try in order of preference
-const MODELS = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash-exp"];
+const MODELS = [
+  "gemini-1.5-flash", 
+  "gemini-1.5-flash-latest", 
+  "gemini-2.0-flash-exp", 
+  "gemini-1.5-pro",
+  "gemma-2-9b-it",
+  "gemma-2-27b-it"
+];
 let currentModelIndex = 0;
 
 function getModel() {
@@ -52,8 +59,9 @@ async function getAlyaResponse(userId, text, username = "Seseorang", db = null, 
     console.error(`Gemini AI Error (Attempt ${retryCount}):`, error.message);
 
     if (retryCount < MODELS.length) {
-      // Switch model
+      // Switch model to the next one in the list
       currentModelIndex = (currentModelIndex + 1) % MODELS.length;
+      console.log(`[AI Rotation] Mencoba model: ${MODELS[currentModelIndex]}`);
       model = getModel();
       
       // Clear session on error
