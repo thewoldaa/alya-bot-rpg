@@ -1,10 +1,22 @@
-const { infoEmbed } = require("../utils/embeds");
+const { infoEmbed, successEmbed } = require("../utils/embeds");
+const { SlashCommandBuilder } = require("discord.js");
 
 module.exports = {
   name: "help",
   aliases: ["menu", "bantuan", "cmds"],
   description: "Menampilkan daftar semua perintah yang tersedia.",
-  async execute({ message, client }) {
+  data: new SlashCommandBuilder()
+    .setName("help")
+    .setDescription("Menampilkan daftar semua perintah yang tersedia."),
+  async execute({ message }) {
+    const embed = this.getHelpEmbed();
+    return message.reply({ embeds: [embed] });
+  },
+  async executeSlash(interaction) {
+    const embed = this.getHelpEmbed();
+    return interaction.reply({ embeds: [embed] });
+  },
+  getHelpEmbed() {
     const categories = {
       "💰 Ekonomi": [
         "`.work` — Bekerja sesuai job",
@@ -30,6 +42,10 @@ module.exports = {
         "`.guild help` — Sistem guild/clan",
         "`.boss info` — Lihat status World Boss",
         "`.boss serang` — Serang World Boss"
+      ],
+      "🎙️ Voice & AFK": [
+        "`.afkalya` — Alya masuk ke voice kamu (stay)",
+        "`.kickalya` — Mengeluarkan Alya dari voice"
       ],
       "🤗 Interaksi Sosial": [
         "`.peluk @user` — Memeluk",
@@ -61,13 +77,6 @@ module.exports = {
       helpText += `**${category}**\n${commands.join("\n")}\n\n`;
     }
 
-    return message.reply({
-      embeds: [
-        infoEmbed(
-          "📖 Daftar Perintah Alya RPG",
-          helpText
-        )
-      ]
-    });
+    return infoEmbed("📖 Daftar Perintah Alya RPG", helpText);
   }
 };
