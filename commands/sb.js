@@ -15,7 +15,10 @@ module.exports = {
   async executeSlash(interaction, db) {
     const soundName = interaction.options.getString("nama", true);
     
-    const result = playSound(interaction.guildId, soundName, db);
+    // Ambil voice channel user untuk auto-join jika Alya belum masuk
+    const voiceChannel = interaction.member?.voice?.channel;
+    
+    const result = playSound(interaction.guildId, soundName, db, voiceChannel);
 
     if (!result.success) {
       return interaction.reply({ embeds: [errorEmbed("Gagal", result.message)], ephemeral: true });

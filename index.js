@@ -39,6 +39,10 @@ async function bootstrap() {
   const db = new Database(dbPath);
   await db.init();
 
+  // Create sounds directory
+  const soundsDir = path.join(__dirname, "database", "sounds");
+  if (!fs.existsSync(soundsDir)) fs.mkdirSync(soundsDir, { recursive: true });
+
   client.config = config;
   client.db = db;
   client.commands = new Collection();

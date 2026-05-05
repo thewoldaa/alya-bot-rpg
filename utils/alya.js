@@ -124,7 +124,13 @@ async function getAlyaResponse(userId, text, username = "Seseorang", db = null, 
     }
 
     if (!responseText) {
-       return "ehe~ kepalaku pusing ga ngerti maksud kamu mwehehe x_x";
+       const fallbacks = [
+         "ehe~ Alya lagi bengong, apa tadi? mwehehe~",
+         "uhh.. kepalaku pusing sebentar, tapi Alya sayang kamu! 🌸",
+         "mwehehe~ Alya nggak denger, coba ulang lagi dong!",
+         "ihh kamu ngomong apa sih? Alya jadi bingung tapi seneng! ✨"
+       ];
+       return fallbacks[Math.floor(Math.random() * fallbacks.length)];
     }
 
     return responseText;
