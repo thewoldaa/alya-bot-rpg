@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { normalizeEquipment, getGearDataByKey, getGearBonuses } = require("../utils/gear");
 const { hasInventoryItem } = require("../utils/helpers");
 const { money } = require("../utils/format");
@@ -11,7 +11,7 @@ module.exports = {
   description: "Meningkatkan level enchant gear.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const slotInput = String(args[0] || "").toLowerCase().trim();
     if (!slotInput) {

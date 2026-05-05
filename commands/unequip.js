@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { normalizeEquipment } = require("../utils/gear");
 
 module.exports = {
@@ -8,7 +8,7 @@ module.exports = {
   description: "Melepas gear dari slot.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const slotInput = String(args[0] || "").toLowerCase().trim();
     if (!slotInput) {

@@ -1,5 +1,5 @@
 const { errorEmbed } = require("../utils/embeds");
-const { requireRegistered, isOwner } = require("../utils/guards");
+const {  isOwner } = require("../utils/guards");
 const {
   normalizeChoice,
   processActChoice,
@@ -31,7 +31,7 @@ module.exports = {
   description: "Aksi interaktif dengan pasangan/character.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const { claims, targetClaim, slotIndex } = pickTargetClaim(db, profile, args[1]);
     if (!claims.length || !targetClaim) {

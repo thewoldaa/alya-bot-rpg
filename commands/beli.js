@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { money } = require("../utils/format");
 const { parseTradeArgs, resolveStock, buyStock } = require("../utils/stockTrade");
 
@@ -9,7 +9,7 @@ module.exports = {
   description: "Beli saham dengan cepat.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const parsed = parseTradeArgs(args);
     if (!parsed) {

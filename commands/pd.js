@@ -5,7 +5,7 @@ const {
   ComponentType
 } = require("discord.js");
 const { infoEmbed, errorEmbed, successEmbed } = require("../utils/embeds");
-const { requireRegistered, isOwner } = require("../utils/guards");
+const {  isOwner } = require("../utils/guards");
 const { money, formatDate } = require("../utils/format");
 const { uid } = require("../utils/random");
 const { startActPrompt } = require("../utils/actSystem");
@@ -136,7 +136,7 @@ module.exports = {
   description: "Melihat character yang diklaim dan aksi PD.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const claims = getClaimsForProfile(db, profile);
     const inputPage = Number(args[0] || 1);

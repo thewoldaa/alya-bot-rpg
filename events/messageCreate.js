@@ -1,14 +1,14 @@
 const { ChannelType } = require("discord.js");
 const { prefix } = require("../config");
 const { successEmbed, infoEmbed } = require("../utils/embeds");
-const { isOwner, requireRegistered } = require("../utils/guards");
+const { isOwner } = require("../utils/guards");
 const { randInt } = require("../utils/random");
 const { timeAgo } = require("../utils/format");
 const { consumeActReply } = require("../utils/actSystem");
 const { getAlyaResponse } = require("../utils/alya");
 
 const spamBuckets = new Map();
-const publicCommands = new Set(["register"]);
+const publicCommands = new Set();
 
 function parsePrefixCommand(content) {
   if (!content.startsWith(prefix)) return null;
@@ -89,9 +89,23 @@ module.exports = {
       const command = client.commands.get(parsed.name);
       if (!command) return;
 
-      const targetProfile = client.db.getCoreByDiscordId(message.author.id);
-      if (!targetProfile && !publicCommands.has(parsed.name)) {
-        return requireRegistered(message, targetProfile);
+      // Command yang boleh di mana saja
+      const freeCommands = new Set(["afkalya", "kickalya"]);
+      if (!freeCommands.has(command.name) && message.guild) {
+        const guildSettings = client.db.getGuildSettings(message.guild.id);
+        if (guildSettings.chat_channel_id && message.channel.id !== guildSettings.chat_channel_id) {
+          return message.reply(`❌ Command ini hanya bisa dipakai di <#${guildSettings.chat_channel_id}>!`).catch(() => {});
+        }
+      }
+
+      let targetProfile = client.db.getCoreByDiscordId(message.author.id);
+      if (!targetProfile) {
+        // Auto-register
+        targetProfile = await client.db.registerUser({
+          discordId: message.author.id,
+          username: message.author.username,
+          limit: client.db.getGuildSettings(message.guild?.id).user_limit || client.config.defaultUserLimit
+        });
       }
 
       try {
@@ -119,7 +133,9 @@ module.exports = {
 
     const isAlyaMentioned = message.mentions.users.has(client.user.id) || message.content.toLowerCase().includes("alya");
     if (isAlyaMentioned || message.channel.type === ChannelType.DM) {
-      const response = getAlyaResponse(message.author.id, message.content);
+      // Send typing indicator while waiting for AI
+      await message.channel.sendTyping();
+      const response = await getAlyaResponse(message.author.id, message.content, message.author.username, client.db);
       return message.reply(response).catch(() => {});
     }
 

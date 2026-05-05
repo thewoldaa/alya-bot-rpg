@@ -1,5 +1,5 @@
 const { successEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { timeAgo } = require("../utils/format");
 
 module.exports = {
@@ -8,7 +8,7 @@ module.exports = {
   description: "Mengaktifkan status AFK.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const raw = args.join(" ").trim();
     const lower = raw.toLowerCase();

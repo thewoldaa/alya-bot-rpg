@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { randInt, pickOne } = require("../utils/random");
 const { money } = require("../utils/format");
 
@@ -11,7 +11,7 @@ module.exports = {
   description: "Judi slot sederhana.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const bet = Number(args[0]);
     if (!Number.isFinite(bet) || bet <= 0) {

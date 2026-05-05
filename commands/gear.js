@@ -1,5 +1,5 @@
 const { infoEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { formatGearList, formatEquipment, getGearBonuses } = require("../utils/gear");
 
 module.exports = {
@@ -8,7 +8,7 @@ module.exports = {
   description: "Melihat gear dan bonus equipment.",
   async execute({ message, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const bonuses = getGearBonuses(profile);
     const content = [

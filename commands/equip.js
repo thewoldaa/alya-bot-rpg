@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { findGear, normalizeEquipment } = require("../utils/gear");
 const { hasInventoryItem } = require("../utils/helpers");
 
@@ -9,7 +9,7 @@ module.exports = {
   description: "Memakai gear dari inventory.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const query = args.join(" ").trim();
     if (!query) {

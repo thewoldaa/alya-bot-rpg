@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed, infoEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 
 const recipes = {
   "enchant_stone": {
@@ -22,7 +22,7 @@ module.exports = {
   description: "Membuat item spesifik dari material yang kamu kumpulkan.",
   async execute({ message, args, db, config }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const itemQuery = args[0]?.toLowerCase();
 

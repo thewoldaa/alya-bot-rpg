@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed, infoEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { resolveShopItem } = require("../utils/helpers");
 const { money } = require("../utils/format");
 
@@ -28,7 +28,7 @@ module.exports = {
   description: "Melihat dan membeli item.",
   async execute({ message, args, db, config, commandName }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const invokedAsShortcut = String(commandName || "").toLowerCase() === "s";
     const firstArg = String(args[0] || "").toLowerCase();

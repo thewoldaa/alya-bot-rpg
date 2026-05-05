@@ -1,5 +1,5 @@
 const { infoEmbed, successEmbed, errorEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { money } = require("../utils/format");
 
 module.exports = {
@@ -8,7 +8,7 @@ module.exports = {
   description: "Beli dan jual saham di perusahaan fiktif server.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const action = args[0]?.toLowerCase();
     const symbol = args[1]?.toUpperCase();

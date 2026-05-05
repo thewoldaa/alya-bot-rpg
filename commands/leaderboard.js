@@ -5,7 +5,7 @@ const {
   ComponentType
 } = require("discord.js");
 const { infoEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { money, number } = require("../utils/format");
 const { uid } = require("../utils/random");
 const { getGearBonuses } = require("../utils/gear");
@@ -149,7 +149,7 @@ module.exports = {
   description: "Top user dan leaderboard ekonomi.",
   async execute({ message, db, commandName }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const cores = db.getAllCores().filter((core) => core?.registered);
     const ctx = {

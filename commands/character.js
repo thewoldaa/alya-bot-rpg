@@ -5,7 +5,7 @@ const {
   ComponentType
 } = require("discord.js");
 const { infoEmbed, errorEmbed } = require("../utils/embeds");
-const { requireRegistered, isOwner } = require("../utils/guards");
+const {  isOwner } = require("../utils/guards");
 const { resolveCharacter, getRandomLocalCharacter, getRandomApiCharacter } = require("../utils/characterSearch");
 const { chance } = require("../utils/random");
 const { uid } = require("../utils/random");
@@ -80,7 +80,7 @@ module.exports = {
   description: "Mencari dan melamar character anime.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const query = args.join(" ").trim();
     if (!query) {

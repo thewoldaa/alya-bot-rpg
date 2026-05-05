@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed, infoEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 
 const availableThemes = ["default", "dark", "light", "cinema", "cyberpunk", "pink"];
 
@@ -9,7 +9,7 @@ module.exports = {
   description: "Mengatur tema warna profil dan embed kartu.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const theme = args[0]?.toLowerCase();
 

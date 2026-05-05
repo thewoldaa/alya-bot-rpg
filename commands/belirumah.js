@@ -1,5 +1,5 @@
 const { successEmbed, infoEmbed, errorEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { findHouse, hasHouse } = require("../utils/helpers");
 const { money } = require("../utils/format");
 
@@ -15,7 +15,7 @@ module.exports = {
   description: "Membeli rumah.",
   async execute({ message, args, db, config }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const input = args.join(" ").trim();
     if (!input) {

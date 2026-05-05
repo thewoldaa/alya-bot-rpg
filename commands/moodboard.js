@@ -1,5 +1,5 @@
 const { infoEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 
 module.exports = {
   name: "moodboard",
@@ -7,7 +7,7 @@ module.exports = {
   description: "Melacak dan menampilkan kalender tingkat mood kamu hari ini.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const input = args[0]?.toLowerCase();
     const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD

@@ -1,5 +1,5 @@
 const { infoEmbed, successEmbed, errorEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { findJob, formatJobs } = require("../utils/jobs");
 const { hungerMax } = require("../config");
 
@@ -9,7 +9,7 @@ module.exports = {
   description: "Melihat atau mengambil job.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const action = (args[0] || "list").toLowerCase();
 

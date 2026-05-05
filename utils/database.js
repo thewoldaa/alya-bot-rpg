@@ -24,7 +24,7 @@ function parseJson(value, fallback) {
   }
 }
 
-function defaultCore({ coreId, username, backupCode, linkedAccount, limit }) {
+function defaultCore({ coreId, username, linkedAccount, limit }) {
   return {
     core_id: coreId,
     username,
@@ -34,7 +34,6 @@ function defaultCore({ coreId, username, backupCode, linkedAccount, limit }) {
     limit,
     inventory: [],
     registered: true,
-    backupCode,
     hunger: hungerMax,
     job: null,
     last_work_at: 0,
@@ -120,7 +119,6 @@ function normalizeCore(core) {
 
   core.inventory = Array.isArray(core.inventory) ? core.inventory : [];
   core.registered = Boolean(core.registered ?? true);
-  core.backupCode = String(core.backupCode || "");
   core.hunger = Number.isFinite(Number(core.hunger)) ? Math.max(0, Number(core.hunger)) : hungerMax;
   core.job = normalizeJob(core.job);
   core.last_work_at = Number(core.last_work_at || 0);
@@ -148,6 +146,11 @@ function normalizeCore(core) {
   core.theme = String(core.theme || "default");
   core.mood_history = Array.isArray(core.mood_history) ? core.mood_history : [];
   core.expeditions = Array.isArray(core.expeditions) ? core.expeditions : [];
+  core.jail_until = Number(core.jail_until || 0);
+  core.bank = Number(core.bank || 0);
+  core.last_daily_at = Number(core.last_daily_at || 0);
+  core.guild = core.guild || null;
+  core.total_sedekah = Number(core.total_sedekah || 0);
   return core;
 }
 
@@ -193,6 +196,7 @@ class Database {
       redeemCodes: {},
       stocks: {},
       market: [],
+      guilds: {},
       meta: {
         version: 1,
         createdAt: Date.now()
@@ -305,22 +309,7 @@ class Database {
     return this.getCore(user.core_id);
   }
 
-  getCoreByBackupCode(backupCode) {
-    const code = String(backupCode || "").trim();
-    if (!code) return null;
 
-    for (const core of Object.values(this.state.cores)) {
-      if (String(core.backupCode).toLowerCase() === code.toLowerCase()) {
-        return clone(core);
-      }
-    }
-
-    if (ownerIds.includes(code)) {
-      return this.ensureOwnerCore(code);
-    }
-
-    return null;
-  }
 
   getGuildSettings(guildId) {
     const id = String(guildId || "global");
@@ -374,11 +363,9 @@ class Database {
 
   buildDefaultCore(discordId, username, limit) {
     const coreId = uid("core_");
-    const backupCode = uid("bk_");
     return defaultCore({
       coreId,
       username,
-      backupCode,
       linkedAccount: String(discordId),
       limit
     });
@@ -389,7 +376,6 @@ class Database {
     return defaultCore({
       coreId,
       username: ownerName,
-      backupCode: String(ownerId),
       linkedAccount: String(ownerId),
       limit: defaultUserLimit
     });
@@ -416,12 +402,12 @@ class Database {
   }
 
   async registerUser({ discordId, username, limit }) {
-    const existing = this.getCoreByDiscordId(discordId);
-    if (existing) {
-      return clone(existing);
+    let core = this.getCoreByDiscordId(discordId);
+    if (core) {
+      return clone(core);
     }
 
-    const core = normalizeCore(this.buildDefaultCore(discordId, username, limit));
+    core = normalizeCore(this.buildDefaultCore(discordId, username, limit));
     this.state.cores[core.core_id] = clone(core);
     this.state.users[String(discordId)] = {
       discord_id: String(discordId),
@@ -431,37 +417,6 @@ class Database {
     };
     await this.persist();
     return clone(core);
-  }
-
-  async linkAccount({ discordId, backupCode, username }) {
-    const target = this.getCoreByBackupCode(backupCode);
-    if (!target) return null;
-
-    const userId = String(discordId);
-    const previous = this.getUser(userId);
-
-    if (previous && previous.core_id !== target.core_id) {
-      const previousCore = this.state.cores[previous.core_id];
-      if (previousCore) {
-        previousCore.linked_accounts = (previousCore.linked_accounts || []).filter((id) => String(id) !== userId);
-        previousCore.updated_at = Date.now();
-      }
-    }
-
-    const currentCore = this.state.cores[target.core_id];
-    if (!currentCore) return null;
-    currentCore.linked_accounts = Array.from(new Set([...(currentCore.linked_accounts || []), userId]));
-    currentCore.updated_at = Date.now();
-
-    this.state.users[userId] = {
-      discord_id: userId,
-      core_id: target.core_id,
-      username,
-      linked_at: Date.now()
-    };
-
-    await this.persist();
-    return clone(currentCore);
   }
 
   async updateCore(coreId, updater) {

@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed, infoEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { money } = require("../utils/format");
 
 const cooldowns = new Map();
@@ -10,7 +10,7 @@ module.exports = {
   description: "Memasukkan barang ke pasar global (Listing Board).",
   async execute({ message, args, db, config }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     // Anti-Spam Cooldown (10s)
     const now = Date.now();

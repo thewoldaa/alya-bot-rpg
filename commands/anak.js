@@ -1,5 +1,5 @@
 const { successEmbed, infoEmbed, errorEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { hasHouse } = require("../utils/helpers");
 
 function formatChildren(children) {
@@ -48,7 +48,7 @@ module.exports = {
   description: "Melihat anak atau menambah anak.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const action = (args[0] || "list").toLowerCase();
     if (action === "list" || action === "lihat") {

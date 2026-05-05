@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { hasHouse } = require("../utils/helpers");
 
 module.exports = {
@@ -8,7 +8,7 @@ module.exports = {
   description: "Alias aksi anak.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const childName = args.join(" ").trim() || `Anak-${(profile.anak?.length || 0) + 1}`;
     if (!Array.isArray(profile.pasangan) || profile.pasangan.length === 0) {

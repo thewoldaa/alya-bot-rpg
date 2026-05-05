@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed, infoEmbed } = require("../utils/embeds");
-const { requireRegistered, isOwner } = require("../utils/guards");
+const {  isOwner } = require("../utils/guards");
 const { resolveCharacter } = require("../utils/characterSearch");
 const { formatDate } = require("../utils/format");
 
@@ -9,7 +9,7 @@ module.exports = {
   description: "Melamar character anime.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const query = args.join(" ").trim();
     if (!query) {

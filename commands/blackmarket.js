@@ -1,5 +1,5 @@
 const { infoEmbed, errorEmbed, successEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { randInt } = require("../utils/random");
 const { money } = require("../utils/format");
 
@@ -9,7 +9,7 @@ module.exports = {
   description: "Pasar gelap yang hanya buka di tengah malam (00:00 - 06:00).",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     // Check time (only open from 00:00 to 06:00)
     const hour = new Date().getHours();

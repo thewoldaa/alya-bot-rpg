@@ -14,6 +14,18 @@ module.exports = {
     }
 
     try {
+      // Command yang boleh di mana saja
+      const freeSlashCommands = new Set(["afkalya", "kickalya"]);
+      if (!freeSlashCommands.has(interaction.commandName) && interaction.guild) {
+        const guildSettings = client.db.getGuildSettings(interaction.guild.id);
+        if (guildSettings.chat_channel_id && interaction.channel.id !== guildSettings.chat_channel_id) {
+          return interaction.reply({
+            content: `❌ Command ini hanya bisa dipakai di <#${guildSettings.chat_channel_id}>!`,
+            ephemeral: true
+          }).catch(() => {});
+        }
+      }
+
       await command.executeSlash(interaction, client.db, client.config);
     } catch (error) {
       console.error(`Slash command error ${interaction.commandName}:`, error);

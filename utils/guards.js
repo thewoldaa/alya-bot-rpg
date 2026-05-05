@@ -70,18 +70,7 @@ function requireAuthority(message, level = "Mod") {
   return true;
 }
 
-function requireRegistered(message, profile) {
-  if (profile) return true;
-  message.reply({
-    embeds: [
-      errorEmbed(
-        "Akun Belum Terdaftar",
-        "Gunakan `.register <nama>` terlebih dahulu sebelum memakai fitur bot."
-      )
-    ]
-  }).catch(() => {});
-  return false;
-}
+// Removed requireRegistered
 
 function getDisplayName(member, user) {
   return member?.displayName || user?.globalName || user?.username || "Unknown";
@@ -106,7 +95,6 @@ module.exports = {
   isAdmin,
   isMod,
   requireAuthority,
-  requireRegistered,
   getDisplayName,
   getDefaultLimitForGuild,
   isHiddenCoreId,

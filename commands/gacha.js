@@ -1,5 +1,5 @@
 const { infoEmbed, errorEmbed, successEmbed } = require("../utils/embeds");
-const { requireRegistered, isOwner } = require("../utils/guards");
+const {  isOwner } = require("../utils/guards");
 const { getRandomLocalCharacter, getRandomApiCharacter } = require("../utils/characterSearch");
 const { chance } = require("../utils/random");
 const { money } = require("../utils/format");
@@ -10,7 +10,7 @@ module.exports = {
   description: "Pull a random anime character for 5000 money.",
   async execute({ message, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const price = 5000;
     if (Number(profile.uang || 0) < price) {

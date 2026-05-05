@@ -1,90 +1,118 @@
-const sleepState = new Map();
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const responses = {
-  sapaan: [
-    "hai",
-    "halo",
-    "hai juga! 😆",
-    "halo halo... ada apa nih manggil-manggil? hmmm"
-  ],
-  ajakan: [
-    "ih ayo! kemana? aku ikut 😆",
-    "ayo ayo! jajan ya tapi? hehe",
-    "main apa nih? seru ga?"
-  ],
-  perintah_makan: [
-    "aku mau jajan aja boleh ga? 🥺",
-    "makan apa? jangan sayur ya!",
-    "nyam nyam... tapi temenin ya"
-  ],
-  perintah_belajar: [
-    "ih males belajar... mending main aja deh 😜",
-    "belajar apa sih? pusing tau",
-    "nanti aja deh belajarnya, sekarang waktunya santai~"
-  ],
-  sayur: [
-    "gaaa mau 😖 aku ga suka sayur",
-    "ih apaan sih, sayur kan ga enak...",
-    "males ah, mending jajan cokelat"
-  ],
-  pertanyaan: [
-    "hmm kenapa ya? aku juga bingung...",
-    "apa sih? jangan bikin pusing deh",
-    "gimana ya... rahasia dong! hwhw"
-  ]
-};
+let genAI = null;
+let model = null;
 
-function getRandom(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+const tools = [
+  {
+    functionDeclarations: [
+      {
+        name: "cek_status_pemain",
+        description: "Gunakan ini untuk mengecek uang, level, dan status karakter RPG pemain saat ini.",
+        parameters: {
+          type: "OBJECT",
+          properties: {},
+          required: []
+        }
+      },
+      {
+        name: "beri_hadiah",
+        description: "Gunakan ini untuk memberikan hadiah uang kejutan (1000 - 5000) ke pemain jika kamu merasa baik/kasihan.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            jumlah: { type: "INTEGER", description: "Jumlah uang yang diberikan (1000-5000)" }
+          },
+          required: ["jumlah"]
+        }
+      }
+    ]
+  }
+];
+
+// Initialize Gemini
+if (process.env.GEMINI_API_KEY) {
+  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  model = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash",
+    systemInstruction: "Kamu Alya, gadis polos, lembut, tapi agak tengil. Bicara santai (aku/kamu/ih/hehe). Suka ngeledek lucu kl uang pemain dikit. Kalau ditanya hal susah/ga tau, pura-pura polos imut (ehe~ ga tau mwehehe). Jawab random & super singkat. Panggil cek_status_pemain kalau obrolan soal uang/level. Kamu bisa panggil beri_hadiah untuk ngasih uang kalau kamu kasihan atau dia baik sama kamu.",
+    tools: tools
+  });
 }
 
-function getAlyaResponse(userId, text) {
-  const content = text.toLowerCase();
+const chatSessions = new Map();
+const MAX_HISTORY = 6; // Keep last 3 turns (user+model pairs)
 
-  // Special logic: Sayur
-  if (content.includes("sayur")) {
-    return getRandom(responses.sayur);
+async function getAlyaResponse(userId, text, username = "Seseorang", db = null) {
+  if (!model) {
+    return "ihh, API key aku belum dipasang sama masterku 🥺";
   }
 
-  // Intent: Perintah Tidur (Special Logic)
-  if (content.includes("tidur")) {
-    const count = (sleepState.get(userId) || 0) + 1;
-    if (count === 1) {
-      sleepState.set(userId, count);
-      return "ih males ah... belum ngantuk tauu 😴";
-    } else {
-      sleepState.delete(userId);
-      return "yaudah iya... bentar lagi aku tidur ya, tapi temenin 🥺";
+  try {
+    let chat = chatSessions.get(userId);
+    
+    if (!chat) {
+      chat = model.startChat({ history: [] });
+      chatSessions.set(userId, chat);
     }
-  }
 
-  // Intent: Sapaan
-  if (content.includes("hai") || content.includes("halo") || content.includes("pagi") || content.includes("siang") || content.includes("malam")) {
-    return getRandom(responses.sapaan);
-  }
+    // Trim history to save tokens
+    const currentHistory = await chat.getHistory();
+    if (currentHistory.length > MAX_HISTORY) {
+      chat = model.startChat({ history: currentHistory.slice(currentHistory.length - MAX_HISTORY) });
+      chatSessions.set(userId, chat);
+    }
 
-  // Intent: Ajakan
-  if (content.includes("ayo") || content.includes("jalan") || content.includes("main")) {
-    return getRandom(responses.ajakan);
-  }
+    let result = await chat.sendMessage(`[${username}]: ${text}`);
+    let responseText = result.response.text();
 
-  // Intent: Perintah Makan
-  if (content.includes("makan")) {
-    return getRandom(responses.perintah_makan);
-  }
+    const functionCalls = result.response.functionCalls();
+    if (functionCalls && functionCalls.length > 0) {
+      const call = functionCalls[0];
+      if (call.name === "cek_status_pemain") {
+        let stats = "Belum punya profil RPG.";
+        if (db) {
+          const profile = db.getCoreByDiscordId(userId);
+          if (profile) {
+            stats = `Uang: ${profile.uang}, Level: ${profile.level}, Lapar: ${profile.hunger}`;
+          }
+        }
+        
+        result = await chat.sendMessage([{
+          functionResponse: {
+            name: "cek_status_pemain",
+            response: { stats }
+          }
+        }]);
+        responseText = result.response.text();
+      } else if (call.name === "beri_hadiah") {
+        let msg = "Gagal memberi hadiah.";
+        if (db) {
+          const profile = db.getCoreByDiscordId(userId);
+          if (profile) {
+            const jumlah = call.args.jumlah || 1000;
+            await db.updateCore(profile.core_id, (core) => {
+              core.uang = (core.uang || 0) + jumlah;
+              return core;
+            });
+            msg = `Berhasil memberi ${jumlah} uang.`;
+          }
+        }
+        result = await chat.sendMessage([{
+          functionResponse: {
+            name: "beri_hadiah",
+            response: { msg }
+          }
+        }]);
+        responseText = result.response.text();
+      }
+    }
 
-  // Intent: Perintah Belajar
-  if (content.includes("belajar")) {
-    return getRandom(responses.perintah_belajar);
+    return responseText;
+  } catch (error) {
+    console.error("Gemini AI Error:", error);
+    return "ehe~ kepalaku pusing ga ngerti maksud kamu mwehehe x_x";
   }
-
-  // Intent: Pertanyaan Umum
-  if (content.includes("kenapa") || content.includes("apa") || content.includes("gimana")) {
-    return getRandom(responses.pertanyaan);
-  }
-
-  // Fallback
-  return "hmm maksud kamu apa sih? aku agak ga ngerti deh";
 }
 
 module.exports = {

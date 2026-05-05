@@ -1,5 +1,5 @@
 const { infoEmbed, errorEmbed, successEmbed } = require("../utils/embeds");
-const { requireRegistered, isOwner } = require("../utils/guards");
+const {  isOwner } = require("../utils/guards");
 
 function isValidHttpUrl(value) {
   if (typeof value !== "string" || !value.trim()) return false;
@@ -57,7 +57,7 @@ module.exports = {
   description: "Pengaturan custom untuk PD owner.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     if (!requireAuthority(message, "Owner")) return;
 

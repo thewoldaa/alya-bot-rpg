@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { randInt } = require("../utils/random");
 const { money } = require("../utils/format");
 
@@ -9,7 +9,7 @@ module.exports = {
   description: "Tebak angka acak.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const guess = Number(args[0]);
     const bet = Number(args[1]);

@@ -1,5 +1,5 @@
 const { successEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { hungerMax, hungerEatAmount } = require("../config");
 
 module.exports = {
@@ -8,7 +8,7 @@ module.exports = {
   description: "Makan untuk mengisi hunger.",
   async execute({ message, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const result = await db.updateCore(profile.core_id, (core) => {
       core.hunger = Math.min(hungerMax, Number(core.hunger ?? hungerMax) + hungerEatAmount);

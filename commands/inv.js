@@ -1,5 +1,5 @@
 const { infoEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { formatInventory, hasHouse, formatEquipment } = require("../utils/helpers");
 const { money } = require("../utils/format");
 const { getGearBonuses } = require("../utils/gear");
@@ -11,7 +11,7 @@ module.exports = {
   description: "Melihat inventory.",
   async execute({ message, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const portfolio = summarizePortfolio(db, profile.portfolio || {});
     const bonuses = getGearBonuses(profile);

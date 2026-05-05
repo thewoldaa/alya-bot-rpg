@@ -1,5 +1,5 @@
 const { successEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { randInt } = require("../utils/random");
 const { money } = require("../utils/format");
 const { workCooldownMs, hungerMax } = require("../config");
@@ -11,7 +11,12 @@ module.exports = {
   description: "Mencari uang sesuai job yang dipilih.",
   async execute({ message, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
+
+    if (profile.jail_until && profile.jail_until > Date.now()) {
+      const timeLeft = Math.ceil((profile.jail_until - Date.now()) / 60000);
+      return message.reply({ embeds: [successEmbed("Dalam Penjara", `Kamu nggak bisa kerja! Masih di penjara karena ketahuan begal. Tunggu **${timeLeft} menit** lagi.`)] });
+    }
 
     if (!profile.job) {
       return message.reply({

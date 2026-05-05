@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { money } = require("../utils/format");
 
 module.exports = {
@@ -8,7 +8,7 @@ module.exports = {
   description: "Menukar kode redeem.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const code = args[0];
     if (!code) {

@@ -1,5 +1,5 @@
 const { successEmbed, errorEmbed, infoEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 const { randInt } = require("../utils/random");
 const { money, timeAgo } = require("../utils/format");
 
@@ -11,7 +11,7 @@ module.exports = {
   description: "Mengirim karakter berpetualang selama beberapa jam untuk mencari harta.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const expeditions = profile.expeditions || [];
     const activeExpedition = expeditions.find(e => e.active);

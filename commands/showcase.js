@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require("discord.js");
 const { errorEmbed } = require("../utils/embeds");
-const { requireRegistered } = require("../utils/guards");
+
 
 module.exports = {
   name: "showcase",
@@ -8,7 +8,7 @@ module.exports = {
   description: "Menampilkan karakter favorit dalam bingkai khusus.",
   async execute({ message, args, db }) {
     const profile = db.getCoreByDiscordId(message.author.id);
-    if (!requireRegistered(message, profile)) return;
+    if (!profile) return;
 
     const claims = db.getCharacterClaimsByCore(profile.core_id);
     if (claims.length === 0) {
