@@ -133,7 +133,15 @@ module.exports = {
 
     const isAlyaMentioned = message.mentions.users.has(client.user.id) || message.content.toLowerCase().includes("alya");
     if (isAlyaMentioned || message.channel.type === ChannelType.DM) {
-      // Cooldown AI untuk irit RPM (3 detik per user)
+      // Check channel restriction for AI
+      if (message.guild) {
+        const guildSettings = client.db.getGuildSettings(message.guild.id);
+        if (guildSettings.chat_channel_id && message.channel.id !== guildSettings.chat_channel_id) {
+          return message.reply(`Ih <@${message.author.id}>, jangan panggil Alya di sini! Sana ke <#${guildSettings.chat_channel_id}> aja mwehehe~`).catch(() => {});
+        }
+      }
+
+      // Cooldown AI untuk irit RPM (5 detik per user)
       const aiCooldowns = client.aiCooldowns || new Map();
       if (!client.aiCooldowns) client.aiCooldowns = aiCooldowns;
 
