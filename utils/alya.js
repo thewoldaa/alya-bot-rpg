@@ -30,20 +30,29 @@ const tools = [
   }
 ];
 
-// Initialize Gemini
+// List models to try in order of preference
+const MODELS = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro"];
+let currentModelIndex = 0;
+
+function getModel(withTools = true) {
+  if (!genAI) return null;
+  const config = {
+    model: MODELS[currentModelIndex],
+    systemInstruction: "Kamu Alya, gadis polos, lembut, tapi agak tengil. Bicara santai (aku/kamu/ih/hehe). Suka ngeledek lucu kl uang pemain dikit. Kalau ditanya hal susah/ga tau, pura-pura polos imut (ehe~ ga tau mwehehe). Jawab random & super singkat. Panggil cek_status_pemain kalau obrolan soal uang/level. Kamu bisa panggil beri_hadiah untuk ngasih uang kalau kamu kasihan atau dia baik sama kamu."
+  };
+  if (withTools) config.tools = tools;
+  return genAI.getGenerativeModel(config);
+}
+
 if (process.env.GEMINI_API_KEY) {
   genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: "Kamu Alya, gadis polos, lembut, tapi agak tengil. Bicara santai (aku/kamu/ih/hehe). Suka ngeledek lucu kl uang pemain dikit. Kalau ditanya hal susah/ga tau, pura-pura polos imut (ehe~ ga tau mwehehe). Jawab random & super singkat. Panggil cek_status_pemain kalau obrolan soal uang/level. Kamu bisa panggil beri_hadiah untuk ngasih uang kalau kamu kasihan atau dia baik sama kamu.",
-    tools: tools
-  });
+  model = getModel(true);
 }
 
 const chatSessions = new Map();
-const MAX_HISTORY = 6; // Keep last 3 turns (user+model pairs)
+const MAX_HISTORY = 6; 
 
-async function getAlyaResponse(userId, text, username = "Seseorang", db = null) {
+async function getAlyaResponse(userId, text, username = "Seseorang", db = null, retryCount = 0) {
   if (!model) {
     return "ihh, API key aku belum dipasang sama masterku 🥺";
   }
@@ -56,7 +65,6 @@ async function getAlyaResponse(userId, text, username = "Seseorang", db = null) 
       chatSessions.set(userId, chat);
     }
 
-    // Trim history to save tokens
     const currentHistory = await chat.getHistory();
     if (currentHistory.length > MAX_HISTORY) {
       chat = model.startChat({ history: currentHistory.slice(currentHistory.length - MAX_HISTORY) });
@@ -64,7 +72,14 @@ async function getAlyaResponse(userId, text, username = "Seseorang", db = null) 
     }
 
     let result = await chat.sendMessage(`[${username}]: ${text}`);
-    let responseText = result.response.text();
+    let responseText = "";
+    
+    try {
+      responseText = result.response.text();
+    } catch (e) {
+      // If text() fails, it might be because it's a pure function call
+      responseText = "";
+    }
 
     const functionCalls = result.response.functionCalls();
     if (functionCalls && functionCalls.length > 0) {
@@ -90,7 +105,7 @@ async function getAlyaResponse(userId, text, username = "Seseorang", db = null) 
         if (db) {
           const profile = db.getCoreByDiscordId(userId);
           if (profile) {
-            const jumlah = call.args.jumlah || 1000;
+            const jumlah = Math.min(5000, Math.max(1000, call.args.jumlah || 1000));
             await db.updateCore(profile.core_id, (core) => {
               core.uang = (core.uang || 0) + jumlah;
               return core;
@@ -108,10 +123,36 @@ async function getAlyaResponse(userId, text, username = "Seseorang", db = null) 
       }
     }
 
+    if (!responseText) {
+       return "ehe~ kepalaku pusing ga ngerti maksud kamu mwehehe x_x";
+    }
+
     return responseText;
   } catch (error) {
-    console.error("Gemini AI Error:", error);
-    return "ehe~ kepalaku pusing ga ngerti maksud kamu mwehehe x_x";
+    console.error(`Gemini AI Error (Attempt ${retryCount}):`, error);
+
+    // If it's a tool-related error or model error, try switching model or disabling tools
+    if (retryCount < 2) {
+      if (error.message?.includes("candidates") || error.message?.includes("Safety")) {
+        return "ihh, omongan kamu disensor sama pusat! Alya nggak berani jawab mwehehe~";
+      }
+      
+      // Try next model or disable tools
+      if (retryCount === 0) {
+        // Try fallback model
+        currentModelIndex = (currentModelIndex + 1) % MODELS.length;
+        model = getModel(true);
+      } else {
+        // Disable tools as last resort
+        model = getModel(false);
+      }
+      
+      // Clear session on error to reset state
+      chatSessions.delete(userId);
+      return getAlyaResponse(userId, text, username, db, retryCount + 1);
+    }
+
+    return "ehe~ kepalaku pusing banget mwehehe x_x (error di sistem pusat)";
   }
 }
 

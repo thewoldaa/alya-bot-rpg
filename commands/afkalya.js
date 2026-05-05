@@ -3,15 +3,13 @@ const { joinVoiceChannel, VoiceConnectionStatus, entersState } = require("@disco
 const { successEmbed, errorEmbed } = require("../utils/embeds");
 
 function setupConnection(connection) {
-  connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
+  connection.on(VoiceConnectionStatus.Disconnected, async () => {
     try {
       await Promise.race([
         entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
         entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
       ]);
-      // Seems to be reconnecting to a new channel - ignore disconnect
     } catch (error) {
-      // Seems to be a real disconnect which shouldn't be recovered from
       connection.destroy();
     }
   });
@@ -24,7 +22,7 @@ module.exports = {
     .setName("afkalya")
     .setDescription("Menyuruh Alya untuk join Voice Channel kamu dan stay (AFK)."),
   async execute({ message }) {
-    if (!message.member.voice.channel) {
+    if (!message.member?.voice?.channel) {
       return message.reply({ embeds: [errorEmbed("Gagal", "Kamu harus berada di Voice Channel dulu biar Alya bisa nyusul!")] });
     }
 
@@ -37,15 +35,15 @@ module.exports = {
         selfMute: false
       });
       setupConnection(connection);
-
       return message.reply({ embeds: [successEmbed("Alya Join", "Aku udah masuk ke Voice Channel kamu ya! Bakal diam di sini sampai kamu suruh `/kickalya`")] });
     } catch (error) {
-      console.error(error);
-      return message.reply({ embeds: [errorEmbed("Error", "Gagal join Voice Channel.")] });
+      console.error("AFK Voice Error:", error);
+      return message.reply({ embeds: [errorEmbed("Error", "Gagal join Voice Channel: " + error.message)] });
     }
   },
-  async executeSlash({ interaction }) {
-    if (!interaction.member.voice.channel) {
+  // interaction diterima langsung, BUKAN destructured object
+  async executeSlash(interaction) {
+    if (!interaction.member?.voice?.channel) {
       return interaction.reply({ embeds: [errorEmbed("Gagal", "Kamu harus berada di Voice Channel dulu biar Alya bisa nyusul!")], ephemeral: true });
     }
 
@@ -58,11 +56,10 @@ module.exports = {
         selfMute: false
       });
       setupConnection(connection);
-
       return interaction.reply({ embeds: [successEmbed("Alya Join", "Aku udah masuk ke Voice Channel kamu ya! Bakal diam di sini sampai kamu suruh `/kickalya`")] });
     } catch (error) {
-      console.error(error);
-      return interaction.reply({ embeds: [errorEmbed("Error", "Gagal join Voice Channel.")], ephemeral: true });
+      console.error("AFK Voice Slash Error:", error);
+      return interaction.reply({ embeds: [errorEmbed("Error", "Gagal join Voice Channel: " + error.message)], ephemeral: true });
     }
   }
 };

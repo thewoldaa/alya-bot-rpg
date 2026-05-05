@@ -23,7 +23,7 @@ module.exports = {
       return message.reply({ embeds: [errorEmbed("Error", "Gagal keluar dari Voice Channel.")] });
     }
   },
-  async executeSlash({ interaction }) {
+  async executeSlash(interaction) {
     const connection = getVoiceConnection(interaction.guild.id);
 
     if (!connection) {
