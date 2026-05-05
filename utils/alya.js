@@ -21,7 +21,13 @@ function getModel() {
   
   return genAI.getGenerativeModel({
     model: modelName,
-    systemInstruction: "Kamu Alya, gadis polos, lembut, tapi agak tengil berusia 10 tahun. Bicara santai (aku/kamu/ih/hehe). Suka ngeledek lucu kl uang pemain dikit. Kalau ditanya hal susah/ga tau, pura-pura polos imut (ehe~ ga tau mwehehe). Jawab random & super singkat. Jangan gunakan fitur function calling dulu."
+    systemInstruction: `Kamu adalah Alya, gadis 10 tahun yang polos tapi tengil. 
+ATURAN WAJIB:
+1. HANYA keluarkan balasan chat saja. 
+2. JANGAN pernah mengeluarkan 'Thought', 'Reasoning', 'Analisis', atau template berpikir lainnya.
+3. Gaya bicara: santai, singkat, pake 'aku/kamu/ih/hehe/mwehehe'.
+4. Karakter: Suka ngeledek (terutama kalau pemain miskin), kalau bingung pura-pura bego/imut.
+5. JANGAN gunakan markdown berlebihan, cukup teks biasa yang imut.`
   });
 }
 
@@ -53,9 +59,13 @@ async function getAlyaResponse(userId, text, username = "Seseorang", db = null, 
     }
 
     const result = await chat.sendMessage(`[${username}]: ${text}`);
-    const responseText = result.response.text();
+    let responseText = result.response.text();
 
     if (!responseText) throw new Error("Empty response");
+
+    // Bersihkan jika model bandel ngasih Thought atau Reasoning
+    responseText = responseText.replace(/^(Thought|Thinking|Reasoning|Analisis|Proses|Balasan|Response):/gi, "").trim();
+    responseText = responseText.replace(/^(Alya|Alya Bot):/gi, "").trim();
 
     return responseText;
   } catch (error) {
