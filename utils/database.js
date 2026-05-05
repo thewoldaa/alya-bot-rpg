@@ -197,6 +197,7 @@ class Database {
       stocks: {},
       market: [],
       guilds: {},
+      soundboard: {},
       meta: {
         version: 1,
         createdAt: Date.now()

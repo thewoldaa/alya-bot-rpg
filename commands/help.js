@@ -43,9 +43,13 @@ module.exports = {
         "`.boss info` — Lihat status World Boss",
         "`.boss serang` — Serang World Boss"
       ],
-      "🎙️ Voice & AFK": [
+      "🎙️ Voice & Soundboard": [
         "`.afkalya` — Alya masuk ke voice kamu (stay)",
-        "`.kickalya` — Mengeluarkan Alya dari voice"
+        "`.kickalya` — Mengeluarkan Alya dari voice",
+        "`.addsb <nama>` — Tambah soundboard (upload mp3)",
+        "`.listsb` — Lihat daftar soundboard",
+        "`/sb <nama>` — Putar soundboard",
+        "`.sbdel <nama>` — Hapus soundboard (Admin)"
       ],
       "🤗 Interaksi Sosial": [
         "`.peluk @user` — Memeluk",
