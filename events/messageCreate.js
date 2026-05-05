@@ -138,7 +138,7 @@ module.exports = {
       if (!client.aiCooldowns) client.aiCooldowns = aiCooldowns;
 
       const lastUsed = aiCooldowns.get(message.author.id) || 0;
-      if (Date.now() - lastUsed < 3000) return; // Diamkan jika kurang dari 3 detik
+      if (Date.now() - lastUsed < 5000) return; // Diamkan jika kurang dari 5 detik
       aiCooldowns.set(message.author.id, Date.now());
 
       // Send typing indicator while waiting for AI
