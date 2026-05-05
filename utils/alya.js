@@ -3,25 +3,25 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 let genAI = null;
 let model = null;
 
-// List models to try in order of preference
+// Prioritas model berdasarkan kuota user (RPD & RPM tertinggi diutamakan)
 const MODELS = [
-  "gemini-1.5-flash", 
-  "gemini-1.5-flash-latest", 
-  "gemini-2.0-flash-exp", 
-  "gemini-3-flash-live",
-  "gemma-4-31b-it",
-  "gemma-4-26b-it",
-  "gemma-4-4b-it",
-  "gemma-4-2b-it",
-  "gemini-1.5-pro"
+  "gemma-4-31b-it",      // 15 RPM, 1500 RPD
+  "gemma-4-26b-it",      // 15 RPM, 1500 RPD
+  "gemini-3.1-flash-lite", // 15 RPM, 500 RPD
+  "gemini-3-flash",      // 5 RPM, 20 RPD (Cadangan)
+  "gemini-2.5-flash-lite", // 10 RPM, 20 RPD (Cadangan)
+  "gemini-1.5-flash"     // Fallback terakhir
 ];
 let currentModelIndex = 0;
 
 function getModel() {
   if (!genAI) return null;
+  const modelName = MODELS[currentModelIndex];
+  console.log(`[AI System] Inisialisasi model: ${modelName}`);
+  
   return genAI.getGenerativeModel({
-    model: MODELS[currentModelIndex],
-    systemInstruction: "Kamu Alya, gadis polos, lembut, tapi agak tengil berusia 10 tahun (status palsu). Bicara santai (aku/kamu/ih/hehe). Suka ngeledek lucu kl uang pemain dikit. Kalau ditanya hal susah/ga tau, pura-pura polos imut (ehe~ ga tau mwehehe). Jawab random & super singkat. Jangan gunakan fitur function calling dulu karena sistem sedang maintenance."
+    model: modelName,
+    systemInstruction: "Kamu Alya, gadis polos, lembut, tapi agak tengil berusia 10 tahun. Bicara santai (aku/kamu/ih/hehe). Suka ngeledek lucu kl uang pemain dikit. Kalau ditanya hal susah/ga tau, pura-pura polos imut (ehe~ ga tau mwehehe). Jawab random & super singkat. Jangan gunakan fitur function calling dulu."
   });
 }
 
@@ -59,15 +59,14 @@ async function getAlyaResponse(userId, text, username = "Seseorang", db = null, 
 
     return responseText;
   } catch (error) {
-    console.error(`Gemini AI Error (Attempt ${retryCount}):`, error.message);
+    console.error(`[AI Error] ${MODELS[currentModelIndex]}: ${error.message}`);
 
     if (retryCount < MODELS.length) {
-      // Switch model to the next one in the list
+      // Rotasi ke model berikutnya
       currentModelIndex = (currentModelIndex + 1) % MODELS.length;
-      console.log(`[AI Rotation] Mencoba model: ${MODELS[currentModelIndex]}`);
       model = getModel();
       
-      // Clear session on error
+      // Hapus sesi lama agar tidak konflik
       chatSessions.delete(userId);
       return getAlyaResponse(userId, text, username, db, retryCount + 1);
     }
