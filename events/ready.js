@@ -1,6 +1,7 @@
 const { ActivityType, EmbedBuilder } = require("discord.js");
 const { updateStockState } = require("../utils/market");
 const { money } = require("../utils/format");
+const { forceVoiceJoin } = require("../utils/voiceHelper");
 
 module.exports = {
   name: "clientReady",
@@ -33,6 +34,14 @@ module.exports = {
       }
     } catch (error) {
       console.error("Gagal register slash commands:", error);
+    }
+
+    // Auto-join voice channels saved in database
+    console.log("[Voice] Checking for persistent voice channels...");
+    for (const settings of Object.values(client.db.state.guildSettings)) {
+      if (settings.voice_channel_id) {
+        forceVoiceJoin(client, settings.guild_id, settings.voice_channel_id);
+      }
     }
 
     let stockTickRunning = false;

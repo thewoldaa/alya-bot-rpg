@@ -8,7 +8,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("kickalya")
     .setDescription("Menyuruh Alya untuk keluar dari Voice Channel."),
-  async execute({ message }) {
+  async execute({ message, db }) {
     const connection = getVoiceConnection(message.guild.id);
 
     if (!connection) {
@@ -16,14 +16,21 @@ module.exports = {
     }
 
     try {
+      if (connection.heartbeat) clearInterval(connection.heartbeat);
       connection.destroy();
+      
+      // Hapus dari database agar tidak auto-join lagi
+      await db.setGuildSettings(message.guild.id, {
+        voice_channel_id: null
+      });
+
       return message.reply({ embeds: [successEmbed("Alya Keluar", "Aku udah keluar dari Voice Channel ya! Dadah~")] });
     } catch (error) {
       console.error(error);
       return message.reply({ embeds: [errorEmbed("Error", "Gagal keluar dari Voice Channel.")] });
     }
   },
-  async executeSlash(interaction) {
+  async executeSlash(interaction, db) {
     const connection = getVoiceConnection(interaction.guild.id);
 
     if (!connection) {
@@ -31,7 +38,14 @@ module.exports = {
     }
 
     try {
+      if (connection.heartbeat) clearInterval(connection.heartbeat);
       connection.destroy();
+
+      // Hapus dari database agar tidak auto-join lagi
+      await db.setGuildSettings(interaction.guildId, {
+        voice_channel_id: null
+      });
+
       return interaction.reply({ embeds: [successEmbed("Alya Keluar", "Aku udah keluar dari Voice Channel ya! Dadah~")] });
     } catch (error) {
       console.error(error);

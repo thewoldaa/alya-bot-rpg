@@ -26,7 +26,7 @@ module.exports = {
         }
       }
 
-      await command.executeSlash(interaction, client.db, client.config);
+      await command.executeSlash(interaction, client.db, client.config, client);
     } catch (error) {
       console.error(`Slash command error ${interaction.commandName}:`, error);
       if (interaction.deferred || interaction.replied) {
