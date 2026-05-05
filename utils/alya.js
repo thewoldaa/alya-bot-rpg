@@ -8,9 +8,12 @@ const MODELS = [
   "gemini-1.5-flash", 
   "gemini-1.5-flash-latest", 
   "gemini-2.0-flash-exp", 
-  "gemini-1.5-pro",
-  "gemma-2-9b-it",
-  "gemma-2-27b-it"
+  "gemini-3-flash-live",
+  "gemma-4-31b-it",
+  "gemma-4-26b-it",
+  "gemma-4-4b-it",
+  "gemma-4-2b-it",
+  "gemini-1.5-pro"
 ];
 let currentModelIndex = 0;
 
