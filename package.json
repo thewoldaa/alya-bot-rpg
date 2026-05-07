@@ -8,6 +8,7 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "@discordjs/opus": "^0.10.0",
     "@discordjs/voice": "^0.19.2",
     "@google/generative-ai": "^0.24.1",
     "discord.js": "^14.21.0",
@@ -17,8 +18,6 @@
     "google-tts-api": "^2.0.2",
     "languagedetect": "^2.0.0",
     "libsodium-wrappers": "^0.8.4",
-    "opusscript": "^0.1.0",
-    "sharp": "^0.34.5",
-    "tweetnacl": "^1.0.3"
+    "sharp": "^0.34.5"
   }
 }
