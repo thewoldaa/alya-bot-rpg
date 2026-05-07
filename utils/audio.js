@@ -124,20 +124,19 @@ async function playTTS(guildId, text, lang = "id", db, voiceChannel = null) {
     });
 
     // Gunakan ffmpeg untuk pitch shift (suara anak kecil / chipmunk)
-    // atempo = mengatur kecepatan (jangan terlalu cepat)
-    // asetrate = menaikkan pitch
+    // -f opus langsung di-encode ke OggOpus untuk Discord.js
     const ffmpegProcess = spawn(ffmpeg, [
       '-i', url,
       '-af', 'asetrate=44100*1.15,aresample=44100,atempo=1/1.15',
-      '-f', 'mp3',
+      '-f', 'opus',
       'pipe:1'
     ]);
 
     const player = getOrCreatePlayer(guildId);
     
-    // Gunakan output ffmpeg langsung sebagai audio resource
+    // Gunakan output ffmpeg langsung sebagai audio resource berformat OggOpus
     const resource = createAudioResource(ffmpegProcess.stdout, {
-      inlineVolume: true
+      inputType: require("@discordjs/voice").StreamType.OggOpus
     });
 
     player.play(resource);
