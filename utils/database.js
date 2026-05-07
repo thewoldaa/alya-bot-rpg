@@ -198,6 +198,7 @@ class Database {
       market: [],
       guilds: {},
       soundboard: {},
+      ai_tokens: [],
       meta: {
         version: 1,
         createdAt: Date.now()
