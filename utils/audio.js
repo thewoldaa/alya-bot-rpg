@@ -8,6 +8,9 @@ const {
 } = require("@discordjs/voice");
 const path = require("path");
 const fs = require("fs");
+const googleTTS = require("google-tts-api");
+const ffmpeg = require("ffmpeg-static");
+const { spawn } = require("child_process");
 
 const players = new Map();
 
@@ -91,7 +94,64 @@ function playSound(guildId, soundName, db, voiceChannel = null) {
   return { success: true, message: `Memutar **${soundData.name}**...` };
 }
 
+async function playTTS(guildId, text, lang = "id", db, voiceChannel = null) {
+  let connection = getVoiceConnection(guildId);
+  
+  if (!connection && voiceChannel) {
+    try {
+      connection = joinVoiceChannel({
+        channelId: voiceChannel.id,
+        guildId: guildId,
+        adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+        selfDeaf: false,
+        selfMute: false
+      });
+    } catch (e) {
+      console.error("Auto-join error:", e);
+    }
+  }
+
+  if (!connection) {
+    return { success: false, message: "Alya nggak ada di Voice Channel! Masuk dulu ke VC terus panggil Alya ya." };
+  }
+
+  try {
+    // Dapatkan URL audio dari Google TTS
+    const url = googleTTS.getAudioUrl(text, {
+      lang: lang,
+      slow: false,
+      host: 'https://translate.google.com',
+    });
+
+    // Gunakan ffmpeg untuk pitch shift (suara anak kecil / chipmunk)
+    // atempo = mengatur kecepatan (jangan terlalu cepat)
+    // asetrate = menaikkan pitch
+    const ffmpegProcess = spawn(ffmpeg, [
+      '-i', url,
+      '-af', 'asetrate=44100*1.15,aresample=44100,atempo=1/1.15',
+      '-f', 'mp3',
+      'pipe:1'
+    ]);
+
+    const player = getOrCreatePlayer(guildId);
+    
+    // Gunakan output ffmpeg langsung sebagai audio resource
+    const resource = createAudioResource(ffmpegProcess.stdout, {
+      inlineVolume: true
+    });
+
+    player.play(resource);
+    connection.subscribe(player);
+
+    return { success: true, message: "Berhasil" };
+  } catch (error) {
+    console.error("TTS Error:", error);
+    return { success: false, message: "Gagal memproses suara TTS." };
+  }
+}
+
 module.exports = {
   getOrCreatePlayer,
-  playSound
+  playSound,
+  playTTS
 };

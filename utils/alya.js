@@ -5,6 +5,7 @@ let model = null;
 
 // Prioritas model berdasarkan kuota user
 const MODELS = [
+  "gemini-3.1-pro",
   "gemma-4-31b-it",      
   "gemma-4-26b-it",      
   "gemini-3.1-flash-lite", 
@@ -18,9 +19,9 @@ function getModel() {
   
   return genAI.getGenerativeModel({
     model: modelName,
-    systemInstruction: "Kamu adalah Alya, anak perempuan 10 tahun yang tengil dan imut. Bicara pake aku/kamu/hehe. JANGAN PERNAH memberikan Thought, Analisis, atau penjelasan. LANGSUNG BALAS CHAT. HANYA SATU KALIMAT PENDEK.",
+    systemInstruction: "Kamu adalah Alya, gadis 10 tahun yang tengil dan imut. Bicara pake aku/kamu/hehe. JANGAN PERNAH berpikir atau menganalisis. JAWAB LANGSUNG dengan satu kalimat pendek.",
     generationConfig: {
-      temperature: 0.1, // Sangat rendah agar tidak 'berpikir' terlalu jauh
+      temperature: 0.2, 
       topP: 0.1,
       maxOutputTokens: 50,
       stopSequences: ["Thought:", "Thinking:", "Analisis:", "Character:", "Constraint:", "User:"]
@@ -33,27 +34,14 @@ if (process.env.GEMINI_API_KEY) {
   model = getModel();
 }
 
-const chatSessions = new Map();
-const MAX_HISTORY = 2; // Kurangi history agar tidak bingung
-
 async function getAlyaResponse(userId, text, username = "Seseorang", db = null, retryCount = 0) {
   if (!model) {
     return "ihh, API key aku belum dipasang masterku 🥺";
   }
 
   try {
-    let chat = chatSessions.get(userId);
-    
-    if (!chat) {
-      chat = model.startChat({ history: [] });
-      chatSessions.set(userId, chat);
-    }
-
-    const currentHistory = await chat.getHistory();
-    if (currentHistory.length > MAX_HISTORY) {
-      chat = model.startChat({ history: currentHistory.slice(currentHistory.length - MAX_HISTORY) });
-      chatSessions.set(userId, chat);
-    }
+    // Selalu buat sesi chat baru untuk menghindari AI terjebak dalam template/loop history
+    const chat = model.startChat({ history: [] });
 
     // Gunakan prompt yang sangat direct
     const result = await chat.sendMessage(text);
@@ -85,7 +73,6 @@ async function getAlyaResponse(userId, text, username = "Seseorang", db = null, 
     if (retryCount < MODELS.length) {
       currentModelIndex = (currentModelIndex + 1) % MODELS.length;
       model = getModel();
-      chatSessions.delete(userId);
       return getAlyaResponse(userId, text, username, db, retryCount + 1);
     }
 

@@ -49,6 +49,7 @@ module.exports = {
         "`.addsb <nama>` — Tambah soundboard (upload mp3)",
         "`.listsb` — Lihat daftar soundboard",
         "`/sb <nama>` — Putar soundboard",
+        "`/say <teks>` — Suruh Alya bicara dengan suara imut",
         "`.sbdel <nama>` — Hapus soundboard (Admin)"
       ],
       "🤗 Interaksi Sosial": [
