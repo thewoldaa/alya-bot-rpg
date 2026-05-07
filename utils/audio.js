@@ -126,6 +126,7 @@ async function playTTS(guildId, text, lang = "id", db, voiceChannel = null) {
     // Gunakan ffmpeg untuk pitch shift (suara anak kecil / chipmunk)
     // -f opus langsung di-encode ke OggOpus untuk Discord.js
     const ffmpegProcess = spawn(ffmpeg, [
+      '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       '-i', url,
       '-af', 'asetrate=44100*1.15,aresample=44100,atempo=1/1.15',
       '-f', 'opus',

@@ -1,6 +1,6 @@
 const { sendChatRequest } = require("./aiProviders");
 
-const SYSTEM_INSTRUCTION = "Kamu adalah Alya, gadis 10 tahun yang tengil dan imut. Bicara pake aku/kamu/hehe. JANGAN PERNAH berpikir atau menganalisis. JAWAB LANGSUNG dengan satu kalimat pendek.";
+const SYSTEM_INSTRUCTION = "Kamu adalah Alya, gadis 10 tahun yang tengil dan imut. Bicara pake bahasa Indonesia santai (aku/kamu/hehe). JANGAN PERNAH memberikan terjemahan bahasa Inggris. JANGAN PERNAH berpikir atau menganalisis. JAWAB LANGSUNG dengan satu kalimat pendek saja tanpa kutipan.";
 
 /**
  * Pembersih Teks Agresif
@@ -15,8 +15,14 @@ function cleanResponse(responseText) {
                 !l.toLowerCase().includes("constraint") && 
                 !l.toLowerCase().includes("character:"));
 
-  const finalStr = lines.length > 0 ? lines[lines.length - 1] : "";
-  return finalStr.replace(/^(")|(")$/g, ""); // Hilangkan kutip jika ada
+  let finalStr = lines.length > 0 ? lines[lines.length - 1] : "";
+  
+  // Hilangkan teks di dalam kurung (biasanya terjemahan atau pikiran AI)
+  finalStr = finalStr.replace(/\(.*?\)/g, "").trim();
+  // Hilangkan tanda kutip
+  finalStr = finalStr.replace(/^(")|(")$/g, "");
+  
+  return finalStr;
 }
 
 async function getAlyaResponse(userId, text, username = "Seseorang", db = null, retryCount = 0) {
